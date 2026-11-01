@@ -139,6 +139,9 @@ STORAGE = {
 # ============================================
 
 MONGO_URI = os.environ.get('MONGO_URI') or 'mongodb://localhost:27017/'
+
+# Redacted copy for logging only - never print credentials to logs
+MONGO_URI_DISPLAY = re.sub(r'^(mongodb(?:\+srv)?://)[^@/]+@', r'\1***@', MONGO_URI)
 MONGO_DB = os.environ.get('MONGO_DB') or 'visiondesk_db'
 
 db = None
@@ -152,7 +155,7 @@ if MONGO_AVAILABLE:
         client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
         db = client[MONGO_DB]
         client.server_info()
-        print(f"✅ Connected to MongoDB: {MONGO_URI}")
+        print(f"✅ Connected to MongoDB: {MONGO_URI_DISPLAY}")
         
         # Collections
         users_col = db['users']
@@ -1541,7 +1544,7 @@ if __name__ == '__main__':
     print(f"📁 Upload folder: {UPLOAD_FOLDER}")
     print(f"📁 Result folder: {RESULT_FOLDER}")
     print(f"📁 Document folder: {DOCUMENT_FOLDER}")
-    print(f"🗄️  MongoDB: {MONGO_URI if MONGO_AVAILABLE else 'In-Memory'}")
+    print(f"🗄️  MongoDB: {MONGO_URI_DISPLAY if MONGO_AVAILABLE else 'In-Memory'}")
     print(f"👤 Default admin: admin / safety2026")
     print(f"🔒 CSRF Protection: Enabled")
     print("=" * 60)
