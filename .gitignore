@@ -13,3 +13,4 @@ static/results/
 .env
 .env.local
 .env.*.local
+!ppe_yolov8.pt

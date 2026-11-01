@@ -289,6 +289,25 @@ else:
         }
         print("✅ In-memory admin user created")
 
+# --- DEPLOY PATCH: safe model loading (torch>=2.6 compatible) ---
+# Allowlist only the standard YOLOv8 classes this checkpoint needs,
+# keeping torch's weights_only=True protection active for everything else.
+import torch as _torch
+import ultralytics.nn.tasks as _ult_tasks
+import ultralytics.nn.modules.block as _ult_block
+import ultralytics.nn.modules.conv as _ult_conv
+import ultralytics.nn.modules.head as _ult_head
+_torch.serialization.add_safe_globals([
+    _ult_tasks.DetectionModel,
+    _ult_block.Bottleneck, _ult_block.C2f, _ult_block.DFL, _ult_block.SPPF,
+    _ult_conv.Conv, _ult_conv.Concat, _ult_head.Detect,
+    _torch.nn.modules.container.Sequential, _torch.nn.modules.container.ModuleList,
+    _torch.nn.modules.conv.Conv2d, _torch.nn.modules.batchnorm.BatchNorm2d,
+    _torch.nn.modules.activation.SiLU, _torch.nn.modules.linear.Identity,
+    _torch.nn.modules.pooling.MaxPool2d, _torch.nn.modules.upsampling.Upsample,
+])
+# --- END DEPLOY PATCH ---
+
 # ============================================
 # YOLO MODEL LOADING
 # ============================================
@@ -814,7 +833,7 @@ def upload_feed():
         print(f"🖼️ Processing image: {filename}")
         try:
             results = model(disk_path, conf=0.55, iou=0.40, agnostic_nms=True, imgsz=640)
-            results[0].save(save_destination)
+            cv2.imwrite(save_destination, results[0].plot())
             
             for item in results:
                 for box in item.boxes:
